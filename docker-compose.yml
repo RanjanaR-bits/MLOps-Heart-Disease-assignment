@@ -1,0 +1,19 @@
+# Local monitoring stack (no Kubernetes needed):  docker compose up --build
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes: ["./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+    depends_on: [api]
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment: {GF_SECURITY_ADMIN_PASSWORD: admin}
+    volumes:
+      - ./monitoring/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./monitoring/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]

@@ -1,0 +1,22 @@
+{
+  "selected_model": "logistic_regression",
+  "best_params": {
+    "model__C": 0.1,
+    "model__class_weight": "balanced"
+  },
+  "cv_accuracy_mean": 0.8304421768707483,
+  "cv_accuracy_std": 0.024781835348260308,
+  "cv_precision_mean": 0.8326253314445534,
+  "cv_precision_std": 0.03562355094295481,
+  "cv_recall_mean": 0.791699604743083,
+  "cv_recall_std": 0.06940783490672202,
+  "cv_f1_mean": 0.8092370958593307,
+  "cv_f1_std": 0.033661964648924035,
+  "cv_roc_auc_mean": 0.9014092992353863,
+  "cv_roc_auc_std": 0.016407461937995013,
+  "test_accuracy": 0.8852459016393442,
+  "test_precision": 0.8387096774193549,
+  "test_recall": 0.9285714285714286,
+  "test_f1": 0.8813559322033898,
+  "test_roc_auc": 0.9632034632034632
+}

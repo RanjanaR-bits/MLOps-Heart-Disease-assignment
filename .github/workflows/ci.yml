@@ -1,0 +1,70 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install flake8==7.1.1
+      - name: Lint (fails the pipeline on any violation)
+        run: flake8 src app tests
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Unit tests
+        run: pytest -v --junitxml=test-results/junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: test-results, path: test-results/}
+
+  train:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Train models (tracked with MLflow)
+        run: python -m src.train
+      - uses: actions/upload-artifact@v4
+        with:
+          name: training-outputs
+          path: |
+            models/
+            reports/
+            mlflow.db
+            mlruns/
+
+  docker:
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t heart-risk-api:ci .
+      - name: Smoke-test the container
+        run: |
+          docker run -d --name api -p 8000:8000 heart-risk-api:ci
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:8000/health && break || sleep 2
+          done
+          curl -sf -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" -d @sample_input.json | tee out.json
+          jq -e '.prediction != null and .confidence != null' out.json
+      - name: Show container logs
+        if: always()
+        run: docker logs api
