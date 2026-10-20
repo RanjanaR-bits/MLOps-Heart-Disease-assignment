@@ -10,6 +10,8 @@ from src.config import (CATEGORICAL_FEATURES, CLEAN_PATH, FIG_DIR, NUMERIC_FEATU
                         REPORT_DIR, TARGET)
 
 LABELS = {0: "No disease", 1: "Disease"}
+ORDER = ["No disease", "Disease"]
+PALETTE = {"No disease": "#66c2a5", "Disease": "#fc8d62"}
 
 
 def _save(fig, name):
@@ -61,8 +63,10 @@ def boxplots(df):
 
 def categorical_counts(df):
     fig, axes = plt.subplots(2, 4, figsize=(16, 7))
+    labels = df[TARGET].map(LABELS)
     for ax, col in zip(axes.ravel(), CATEGORICAL_FEATURES):
-        sns.countplot(data=df, x=col, hue=df[TARGET].map(LABELS), ax=ax)
+        sns.countplot(data=df, x=col, hue=labels, hue_order=["No disease", "Disease"],
+                      palette={"No disease": "#66c2a5", "Disease": "#fc8d62"}, ax=ax)
         ax.set_title(col)
         ax.legend(fontsize=7)
     _save(fig, "05_categorical_counts_by_target.png")
